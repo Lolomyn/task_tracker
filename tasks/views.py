@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from .models import Employee, Task
 from .serializers import CreateTaskSerializer, EmployeeSerializer, ImportantTaskSerializer, TaskSerializer
-from .services import search_worker
+from .services import search_employee
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -54,6 +54,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Employee.objects.all()
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
 
 class BusyEmployeesAPIView(APIView):
     """Представление для занятых сотрудников"""
@@ -73,7 +80,7 @@ class ImportantTasksViewSet(viewsets.ModelViewSet):
     serializer_class = ImportantTaskSerializer
 
     def get_queryset(self):
-        return Task.objects.filter(status="Open", parent_task__isnull=False).exclude(parent_task__status="Open")
+        return Task.objects.filter(status="Open", parent_task__isnull=False, parent_task__status="In Progress")
 
     def list(self, request, *args, **kwargs):
         important_tasks = self.get_queryset()
@@ -91,7 +98,7 @@ class ImportantTasksViewSet(viewsets.ModelViewSet):
             min_tasks=Min("active_tasks_count", filter=~Q(tasks__status__in=["Closed"]))
         )["min_tasks"]
 
-        recommended_employees = search_worker(important_tasks, employees_stats, min_tasks_count)
+        recommended_employees = search_employee(important_tasks, employees_stats, min_tasks_count)
 
         serializer = self.get_serializer(
             important_tasks, many=True, context={"recommended_employees": recommended_employees}
