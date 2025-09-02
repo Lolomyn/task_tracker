@@ -39,7 +39,13 @@ class Task(models.Model):
     )
 
     executor = models.ForeignKey(
-        Employee, on_delete=models.CASCADE, help_text="Выберите исполнителя задачи", verbose_name="Исполнитель задачи"
+        Employee,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        help_text="Выберите исполнителя задачи",
+        verbose_name="Исполнитель задачи",
+        related_name="tasks",
     )
 
     period = models.DateTimeField(help_text="Укажите срок выполнения задачи", verbose_name="Срок выполнения задачи")
@@ -54,7 +60,7 @@ class Task(models.Model):
     ]
 
     status = models.CharField(
-        choices=STATUS_CHOICES, default="open", help_text="Выберите статус задачи", verbose_name="Статус задачи"
+        choices=STATUS_CHOICES, default="Open", help_text="Выберите статус задачи", verbose_name="Статус задачи"
     )
 
     def __str__(self):
