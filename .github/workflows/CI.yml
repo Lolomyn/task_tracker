@@ -79,7 +79,7 @@ jobs:
 
       - name: Sync changed files
         run: |
-          rsync -avz --delete \
+          rsync -avz --delete --no-times \
             -e "ssh -o StrictHostKeyChecking=no" \
             --exclude='.git' \
             --exclude='.github' \
